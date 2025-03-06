@@ -45,6 +45,7 @@ var mainState = {
 
             // Check if the bird has passed a pipe to increase the score
             this.pipes.forEachAlive(function(pipe) {
+                // Only increment score once when the bird has passed the pipe
                 if (!pipe.scored && pipe.x + pipe.width < this.bird.x) {
                     this.score += 1;
                     this.labelScore.text = this.score;
