@@ -1,17 +1,15 @@
-var game = new Phaser.Game(400, 490, Phaser.AUTO, 'game');
+var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'game');
 
 var mainState = {
     preload: function() { 
         game.stage.backgroundColor = '#71c5cf';
 
-        // Create an in-memory image for the bird
         var birdImg = new Image();
         birdImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEXSvicAAABogyUZAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
         birdImg.onload = function () {
             game.cache.addImage('bird', birdImg.src, birdImg);
         };
 
-        // Create an in-memory image for the pipe
         var pipeImg = new Image();
         pipeImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEV0vy4AAADnrrHQAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
         pipeImg.onload = function () {
@@ -27,7 +25,7 @@ var mainState = {
         this.pipes.createMultiple(20, 'pipe');  
         this.timer = this.game.time.events.loop(1500, this.addRowOfPipes, this);           
 
-        this.bird = this.game.add.sprite(100, 245, 'bird');
+        this.bird = this.game.add.sprite(game.world.centerX - 50, game.world.centerY, 'bird');
         game.physics.arcade.enable(this.bird);
         this.bird.body.gravity.y = 1000; 
 
@@ -37,13 +35,20 @@ var mainState = {
         spaceKey.onDown.add(this.jump, this); 
 
         this.score = 0;
-        this.labelScore = this.game.add.text(20, 20, "0", { font: "30px Arial", fill: "#ffffff" });  
+        this.labelScore = this.game.add.text(20, 20, "0", { font: "30px Arial", fill: "#ffffff" });
+
+        this.finalScoreText = this.game.add.text(
+            game.world.centerX, game.world.centerY, "", 
+            { font: "50px Arial", fill: "#ff0000", align: "center" }
+        );
+        this.finalScoreText.anchor.setTo(0.5, 0.5);
+        this.finalScoreText.visible = false;
 
         this.jumpSound = game.add.audio('jump');
     },
 
     update: function() {
-        if (!this.bird.inWorld) this.restartGame(); 
+        if (!this.bird.inWorld) this.endGame(); 
 
         game.physics.arcade.overlap(this.bird, this.pipes, this.hitPipe, null, this); 
 
@@ -66,10 +71,17 @@ var mainState = {
         this.pipes.forEachAlive(function(p){
             p.body.velocity.x = 0;
         }, this);
+
+        this.endGame();
     },
 
-    restartGame: function() {
-        game.state.start('main');
+    endGame: function() {
+        this.finalScoreText.text = "Game Over\nScore: " + this.score;
+        this.finalScoreText.visible = true;
+
+        game.time.events.add(2000, function() {
+            game.state.start('main');
+        }, this);
     },
 
     addOnePipe: function(x, y) {
@@ -85,7 +97,7 @@ var mainState = {
         
         for (var i = 0; i < 8; i++) {
             if (i !== hole && i !== hole + 1) {
-                this.addOnePipe(400, i * 60 + 10);
+                this.addOnePipe(game.world.width, i * 60 + 10);
             }
         }
 
@@ -96,3 +108,8 @@ var mainState = {
 
 game.state.add('main', mainState);  
 game.state.start('main');
+
+// Resize game when window resizes
+window.addEventListener("resize", function() {
+    game.scale.setGameSize(window.innerWidth, window.innerHeight);
+});
