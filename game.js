@@ -4,18 +4,19 @@ var mainState = {
     preload: function() { 
         game.stage.backgroundColor = '#71c5cf';
 
-        // Base64 images
-        var birdBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEXSvicAAABogyUZAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
-        var pipeBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEV0vy4AAADnrrHQAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
+        // Create an in-memory image for the bird
+        var birdImg = new Image();
+        birdImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEXSvicAAABogyUZAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
+        birdImg.onload = function () {
+            game.cache.addImage('bird', birdImg.src, birdImg);
+        };
 
-        // Add base64 images to Phaser's cache
-        game.load.onLoadComplete.addOnce(() => {
-            game.cache.addBase64('bird', birdBase64);
-            game.cache.addBase64('pipe', pipeBase64);
-        });
-
-        // Dummy load to trigger `onLoadComplete`
-        game.load.image('dummy', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAA...");
+        // Create an in-memory image for the pipe
+        var pipeImg = new Image();
+        pipeImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyAQMAAAAk8RryAAAABlBMVEV0vy4AAADnrrHQAAAAGUlEQVR4AWP4DwYHMOgHDEDASCN6lMYV7gChf3AJ/eB/pQAAAABJRU5ErkJggg==";
+        pipeImg.onload = function () {
+            game.cache.addImage('pipe', pipeImg.src, pipeImg);
+        };
     },
 
     create: function() { 
