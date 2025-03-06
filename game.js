@@ -13,8 +13,9 @@ var mainState = {
 
         this.pipes = game.add.group();
         this.pipes.enableBody = true;
-        this.pipes.createMultiple(20, 'pipe');  
-
+        
+        this.pipePairs = game.add.group(); // New group for tracking pairs
+        
         this.timer = game.time.events.loop(1500, this.addRowOfPipes, this);
 
         this.bird = game.add.sprite(100, game.world.centerY, 'bird');
@@ -34,14 +35,24 @@ var mainState = {
         this.finalScoreText.anchor.setTo(0.5, 0.5);
         this.finalScoreText.visible = false;
 
-        this.bird.alive = true; // Fix: Ensure the bird starts alive
+        this.bird.alive = true;
     },
 
     update: function() {
         if (this.bird.alive) {
             if (!this.bird.inWorld) this.endGame(); 
             game.physics.arcade.overlap(this.bird, this.pipes, this.hitPipe, null, this);
-            if (this.bird.angle < 20) this.bird.angle += 1;   
+            
+            if (this.bird.angle < 20) this.bird.angle += 1;
+
+            // Check if bird has passed a pipe pair to update score
+            this.pipePairs.forEachAlive(function(pair) {
+                if (!pair.scored && pair.children[0].x + pair.children[0].width < this.bird.x) {
+                    this.score += 1;
+                    this.labelScore.text = this.score;
+                    pair.scored = true;
+                }
+            }, this);
         }
     },
 
@@ -85,19 +96,29 @@ var mainState = {
             pipe.checkWorldBounds = true;
             pipe.outOfBoundsKill = true;
         }
+        return pipe;
     },
 
     addRowOfPipes: function() {
         var hole = Math.floor(Math.random() * 5) + 1;
 
+        var topPipe, bottomPipe;
         for (var i = 0; i < 8; i++) {
             if (i !== hole && i !== hole + 1) {
-                this.addOnePipe(game.world.width, i * 60 + 10);
+                var pipe = this.addOnePipe(game.world.width, i * 60 + 10);
+                if (i < hole) topPipe = pipe;
+                if (i > hole) bottomPipe = pipe;
             }
         }
 
-        this.score += 1;
-        this.labelScore.text = this.score;
+        // Store the pipes as a pair for scoring
+        if (topPipe && bottomPipe) {
+            var pipePair = game.add.group();
+            pipePair.add(topPipe);
+            pipePair.add(bottomPipe);
+            pipePair.scored = false; // Track if score was given
+            this.pipePairs.add(pipePair);
+        }
     },
 };
 
