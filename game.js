@@ -14,8 +14,6 @@ var mainState = {
         this.pipes = game.add.group();
         this.pipes.enableBody = true;
         
-        this.pipePairs = game.add.group(); // New group for tracking pairs
-        
         this.timer = game.time.events.loop(1500, this.addRowOfPipes, this);
 
         this.bird = game.add.sprite(100, game.world.centerY, 'bird');
@@ -45,12 +43,12 @@ var mainState = {
             
             if (this.bird.angle < 20) this.bird.angle += 1;
 
-            // Check if bird has passed a pipe pair to update score
-            this.pipePairs.forEachAlive(function(pair) {
-                if (!pair.scored && pair.children[0].x + pair.children[0].width < this.bird.x) {
+            // Check if the bird has passed a pipe to increase the score
+            this.pipes.forEachAlive(function(pipe) {
+                if (!pipe.scored && pipe.x + pipe.width < this.bird.x) {
                     this.score += 1;
                     this.labelScore.text = this.score;
-                    pair.scored = true;
+                    pipe.scored = true;
                 }
             }, this);
         }
@@ -89,35 +87,21 @@ var mainState = {
     },
 
     addOnePipe: function(x, y) {
-        var pipe = this.pipes.getFirstDead();
-        if (pipe) {
-            pipe.reset(x, y);
-            pipe.body.velocity.x = -200;  
-            pipe.checkWorldBounds = true;
-            pipe.outOfBoundsKill = true;
-        }
-        return pipe;
+        var pipe = this.pipes.create(x, y, 'pipe');
+        game.physics.arcade.enable(pipe);
+        pipe.body.velocity.x = -200;  
+        pipe.checkWorldBounds = true;
+        pipe.outOfBoundsKill = true;
+        pipe.scored = false; // Mark it for scoring
     },
 
     addRowOfPipes: function() {
         var hole = Math.floor(Math.random() * 5) + 1;
 
-        var topPipe, bottomPipe;
         for (var i = 0; i < 8; i++) {
             if (i !== hole && i !== hole + 1) {
-                var pipe = this.addOnePipe(game.world.width, i * 60 + 10);
-                if (i < hole) topPipe = pipe;
-                if (i > hole) bottomPipe = pipe;
+                this.addOnePipe(game.world.width, i * 60 + 10);
             }
-        }
-
-        // Store the pipes as a pair for scoring
-        if (topPipe && bottomPipe) {
-            var pipePair = game.add.group();
-            pipePair.add(topPipe);
-            pipePair.add(bottomPipe);
-            pipePair.scored = false; // Track if score was given
-            this.pipePairs.add(pipePair);
         }
     },
 };
